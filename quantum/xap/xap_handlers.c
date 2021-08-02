@@ -20,12 +20,27 @@
 
 void xap_respond_failure(xap_token_t token, xap_response_flags_t response_flags) { xap_send(token, response_flags, NULL, 0); }
 
-bool subsystem_xap_version_query_handler(xap_token_t token, const uint8_t *data, size_t data_len) { return false; }
-
-bool subsystem_xap_subsystem_query_handler(xap_token_t token, const uint8_t *data, size_t data_len) { return false; }
-
-bool subsystem_qmk_version_query_handler(xap_token_t token, const uint8_t *data, size_t data_len) {
-    uint32_t version = 0x12345678;
-    xap_send(token, XAP_RESPONSE_FLAG_SUCCESS, &version, sizeof(version));
+bool xap_respond_u8(xap_token_t token, uint8_t value) {
+    xap_send(token, XAP_RESPONSE_FLAG_SUCCESS, &value, sizeof(value));
     return true;
+}
+
+bool xap_respond_u16(xap_token_t token, uint16_t value) {
+    xap_send(token, XAP_RESPONSE_FLAG_SUCCESS, &value, sizeof(value));
+    return true;
+}
+
+bool xap_respond_u32(xap_token_t token, uint32_t value) {
+    xap_send(token, XAP_RESPONSE_FLAG_SUCCESS, &value, sizeof(value));
+    return true;
+}
+
+bool xap_respond_u64(xap_token_t token, uint64_t value) {
+    xap_send(token, XAP_RESPONSE_FLAG_SUCCESS, &value, sizeof(value));
+    return true;
+}
+
+bool subsystem_xap_subsystem_query_handler(xap_token_t token, const uint8_t *data, size_t data_len) {
+    static const uint64_t xap_subsystems = (1 << SUBSYSTEM_XAP) | (1 << SUBSYSTEM_QMK) | (1 << SUBSYSTEM_KB) | (1 << SUBSYSTEM_USER);
+    return xap_respond_u64(token, xap_subsystems);
 }

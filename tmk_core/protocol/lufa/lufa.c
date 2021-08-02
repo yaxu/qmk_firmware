@@ -285,10 +285,10 @@ void xap_send_base(uint8_t *data, uint8_t length) {
 
 void xap_send(xap_token_t token, uint8_t response_flags, const void *data, size_t length) {
     uint8_t rdata[XAP_EPSIZE] = {0};
-    rdata[0]                  = (token >> 8);
-    rdata[1]                  = (token & 0xFF);
-    rdata[2]                  = response_flags;
-    if (response_flags & XAP_RESPONSE_FLAG_SUCCESS && length <= (XAP_EPSIZE - 4)) {
+    *(xap_token_t *)&rdata[0] = token;
+    if (length > (XAP_EPSIZE - 4)) response_flags &= ~(XAP_RESPONSE_FLAG_SUCCESS);
+    rdata[2] = response_flags;
+    if (response_flags & (XAP_RESPONSE_FLAG_SUCCESS)) {
         rdata[3] = (uint8_t)length;
         if (data != NULL) {
             memcpy(&rdata[4], data, length);
@@ -299,7 +299,7 @@ void xap_send(xap_token_t token, uint8_t response_flags, const void *data, size_
 
 void xap_receive_base(const void *data) {
     const uint8_t *u8data = (const uint8_t *)data;
-    xap_token_t    token  = ((xap_token_t)u8data[0]) << 8 | u8data[1];
+    xap_token_t    token  = *(xap_token_t *)&u8data[0];
     uint8_t        length = u8data[2];
     if (length <= (XAP_EPSIZE - 3)) {
         xap_receive(token, &u8data[3], length);

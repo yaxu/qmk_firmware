@@ -164,11 +164,13 @@
                         XAP protocol version query.
 
                         * Returns the BCD-encoded version in the format of XX.YY.ZZZZ => `0xXXYYZZZZ`
-                            * e.g. 1.1.15 will match `0x01010015`.
+                            * e.g. 3.2.115 will match `0x03020115`, or bytes {0x15,0x01,0x02,0x03}.
                         * Response:
                             * `u32` value.
                         '''
                     always_present: true
+                    returns_constant: XAP_BCD_VERSION
+                    return_type: u32/bcd-version
                 }
             }
         }

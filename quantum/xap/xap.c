@@ -22,10 +22,11 @@ typedef enum xap_route_type_t {
     XAP_UNUSED = 0,  // "Unused" needs to be zero -- undefined routes (through preprocessor) will be skipped
     XAP_ROUTE,
     XAP_EXECUTE,
+    XAP_VALUE_U32,
     TOTAL_XAP_ROUTE_TYPES
 } xap_route_type_t;
 
-#define XAP_ROUTE_TYPE_BIT_COUNT 2
+#define XAP_ROUTE_TYPE_BIT_COUNT 3
 
 typedef struct __attribute__((packed)) xap_route_flags_t {
     xap_route_type_t type : XAP_ROUTE_TYPE_BIT_COUNT;
@@ -39,11 +40,15 @@ typedef struct xap_route_t xap_route_t;
 struct __attribute__((packed)) xap_route_t {
     const xap_route_flags_t flags;
     union {
+        // XAP_ROUTE
         struct {
             const xap_route_t *child_routes;
             const uint8_t      child_routes_len;
         };
+        // XAP_EXECUTE
         bool (*handler)(xap_token_t token, const uint8_t *data, size_t data_len);
+        // XAP_VALUE_U32
+        uint32_t u32value;
     };
 };
 
@@ -67,6 +72,9 @@ void xap_execute_route(xap_token_t token, const xap_route_t *routes, size_t max_
                     if (ok) return;
                 }
                 break;
+            case XAP_VALUE_U32:
+                xap_respond_u32(token, route->u32value);
+                return;
             default:
                 break;
         }
@@ -76,6 +84,4 @@ void xap_execute_route(xap_token_t token, const xap_route_t *routes, size_t max_
     xap_respond_failure(token, XAP_RESPONSE_FLAG_FAILED);
 }
 
-void xap_receive(xap_token_t token, const uint8_t *data, size_t length) {
-    xap_execute_route(token, subsystem_routes, sizeof(subsystem_routes) / sizeof(subsystem_routes[0]), data, length);
-}
+void xap_receive(xap_token_t token, const uint8_t *data, size_t length) { xap_execute_route(token, subsystem_routes, sizeof(subsystem_routes) / sizeof(subsystem_routes[0]), data, length); }

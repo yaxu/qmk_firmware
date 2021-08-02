@@ -2,9 +2,11 @@
 """
 import hjson
 import datetime
+import re
 
 from milc import cli
 from qmk.path import normpath
+from qmk.commands import get_git_version
 from qmk.xap import latest_xap_defs
 
 
@@ -84,11 +86,32 @@ def _append_routing_table(lines, route, name_stack=[]):
         if child['type'] == 'router':
             lines.append(f'    [{name_stack_str}] = {{ .flags = {{ .type = XAP_ROUTE, .is_secure = {is_secure} }}, .child_routes = {name_stack_str.lower()}_routes, .child_routes_len = sizeof({name_stack_str.lower()}_routes)/sizeof({name_stack_str.lower()}_routes[0]) }},')
         elif child['type'] == 'command':
-            lines.append(f'    [{name_stack_str}] = {{ .flags = {{ .type = XAP_EXECUTE, .is_secure = {is_secure} }}, .handler = &{name_stack_str.lower()}_handler }},')
+            if 'returns_constant' in child:
+                # Auto-generated route handlers
+                ret_define = child['returns_constant']
+                lines.append(f'    [{name_stack_str}] = {{ .flags = {{ .type = XAP_VALUE_U32, .is_secure = {is_secure} }}, .u32value = ({ret_define}) }},')
+            else:
+                # External route handler
+                lines.append(f'    [{name_stack_str}] = {{ .flags = {{ .type = XAP_EXECUTE, .is_secure = {is_secure} }}, .handler = &{name_stack_str.lower()}_handler }},')
         name_stack.pop()
     lines.append('};')
     lines.append('')
     name_stack.pop()
+
+
+def _append_route_handler(lines, route, name):
+    if route['return_type'].startswith('u32'):
+        if 'returns_constant' in route:
+            # Handled directly in the table
+            pass
+        elif 'returns_function' in route:
+            ret_define = route['returns_function']
+            lines.append(f'static bool {name}_handler(xap_token_t token, const uint8_t *data, size_t data_len) {{')
+            lines.append(f'    return xap_respond_u32_handler(token, ({ret_define}));')
+            lines.append(f'}}')
+    else:
+        # External route handler
+        lines.append(f'extern bool {name_stack_str.lower()}_handler(xap_token_t token, const uint8_t *data, size_t data_len);')
 
 
 def _append_routing_tables(lines, route_container, name_stack=[]):
@@ -101,7 +124,12 @@ def _append_routing_tables(lines, route_container, name_stack=[]):
             _append_routing_tables(lines, route, name_stack[:-1])
             lines.append('')
         elif route['type'] == 'command':
-            lines.append(f'extern bool {name_stack_str.lower()}_handler(xap_token_t token, const uint8_t *data, size_t data_len);')
+            if 'returns_constant' in route:
+                # Auto-generated route handlers
+                _append_route_handler(lines, route, name_stack_str.lower())
+            else:
+                # External route handler
+                lines.append(f'extern bool {name_stack_str.lower()}_handler(xap_token_t token, const uint8_t *data, size_t data_len);')
             lines.append('')
         name_stack.pop()
     name_stack.pop()
@@ -115,12 +143,12 @@ def xap_generate_qmk_inc(cli):
     """
     xap_defs = latest_xap_defs()
 
-    xap_generated_inl_lines = [gpl_header, generated]
+    lines = [gpl_header, generated]
 
     # Append the routing tables
-    _append_routing_tables(xap_generated_inl_lines, xap_defs)
+    _append_routing_tables(lines, xap_defs)
 
-    xap_generated_inl = '\n'.join(xap_generated_inl_lines)
+    xap_generated_inl = '\n'.join(lines)
 
     if cli.args.output:
         if cli.args.output.name == '-':
@@ -139,12 +167,19 @@ def xap_generate_qmk_h(cli):
     """
     xap_defs = latest_xap_defs()
 
-    xap_generated_inl_lines = [gpl_header, generated]
+    lines = [gpl_header, generated, '#pragma once','']
+
+    prog = re.compile(r'^(\d+)\.(\d+)\.(\d+)')
+    b = prog.match(xap_defs['version'])
+    lines.append(f'#define XAP_BCD_VERSION 0x{int(b.group(1)):02d}{int(b.group(2)):02d}{int(b.group(3)):04d}')
+    b = prog.match(get_git_version())
+    lines.append(f'#define QMK_BCD_VERSION 0x{int(b.group(1)):02d}{int(b.group(2)):02d}{int(b.group(3)):04d}')
+    lines.append('')
 
     # Append the route and command defines
-    _append_defines(xap_generated_inl_lines, xap_defs)
+    _append_defines(lines, xap_defs)
 
-    xap_generated_inl = '\n'.join(xap_generated_inl_lines)
+    xap_generated_inl = '\n'.join(lines)
 
     if cli.args.output:
         if cli.args.output.name == '-':

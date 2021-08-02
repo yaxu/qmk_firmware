@@ -23,10 +23,22 @@ typedef uint8_t  xap_identifier_t;
 typedef uint8_t  xap_response_flags_t;
 typedef uint16_t xap_token_t;
 
+#ifndef XAP_SUBSYSTEM_VERSION_KB
+#    define XAP_SUBSYSTEM_VERSION_KB 0
+#endif
+
+#ifndef XAP_SUBSYSTEM_VERSION_USER
+#    define XAP_SUBSYSTEM_VERSION_USER 0
+#endif
+
 #define XAP_RESPONSE_FLAG_FAILED 0
 #define XAP_RESPONSE_FLAG_SUCCESS (1 << 0)
 
 void xap_respond_failure(xap_token_t token, xap_response_flags_t response_flags);
+bool xap_respond_u8(xap_token_t token, uint8_t value);
+bool xap_respond_u16(xap_token_t token, uint16_t value);
+bool xap_respond_u32(xap_token_t token, uint32_t value);
+bool xap_respond_u64(xap_token_t token, uint64_t value);
 
 void xap_send(xap_token_t token, xap_response_flags_t response_flags, const void *data, size_t length);
 
