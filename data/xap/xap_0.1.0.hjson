@@ -112,7 +112,8 @@
                         XAP protocol subsystem query. Each bit should be considered as a "usable" subsystem. For example, checking `(value & (1 << SUBSYSTEM_QMK) != 0)` means the QMK subsystem is enabled and available for querying.
                         '''
                     always_present: true
-                    return_type: u64/bitmask
+                    returns_getter: true
+                    return_type: u32/bitmask
                 }
             }
         },

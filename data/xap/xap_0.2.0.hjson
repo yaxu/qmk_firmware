@@ -1,0 +1,41 @@
+{
+    version: 0.2.0
+
+    routes: {
+        0x04: {
+            type: router
+            name: Dynamic Keymap
+            define: DYNAMIC_KEYMAP
+            description:
+                '''
+                This subsystem allows for live modifications of the keymap, allowing keys to be reassigned without rebuilding the firmware.
+                '''
+            routes: {
+            }
+        }
+
+        0x05: {
+            type: router
+            name: Dynamic Encoders
+            define: DYNAMIC_ENCODER
+            description:
+                '''
+                This subsystem allows for live modifications of the keymap, allowing encoder functionality to be reassigned without rebuilding the firmware.
+                '''
+            routes: {
+            }
+        }
+
+        0x06: {
+            type: router
+            name: Lighting
+            define: LIGHTING
+            description:
+                '''
+                This subsystem allows for control over the lighting subsystem.
+                '''
+            routes: {
+            }
+        }
+    }
+}

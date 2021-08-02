@@ -22,7 +22,8 @@ typedef enum xap_route_type_t {
     XAP_UNUSED = 0,  // "Unused" needs to be zero -- undefined routes (through preprocessor) will be skipped
     XAP_ROUTE,
     XAP_EXECUTE,
-    XAP_VALUE_U32,
+    XAP_VALUE,
+    XAP_GETTER,
     TOTAL_XAP_ROUTE_TYPES
 } xap_route_type_t;
 
@@ -45,10 +46,15 @@ struct __attribute__((packed)) xap_route_t {
             const xap_route_t *child_routes;
             const uint8_t      child_routes_len;
         };
+
         // XAP_EXECUTE
         bool (*handler)(xap_token_t token, const uint8_t *data, size_t data_len);
+
         // XAP_VALUE_U32
         uint32_t u32value;
+
+        // XAP_GETTER_U32
+        uint32_t (*u32getter)(void);
     };
 };
 
@@ -57,6 +63,7 @@ struct __attribute__((packed)) xap_route_t {
 void xap_execute_route(xap_token_t token, const xap_route_t *routes, size_t max_routes, const uint8_t *data, size_t data_len) {
     if (data_len == 0) return;
     xap_identifier_t id = data[0];
+
     if (id < max_routes) {
         const xap_route_t *route = &routes[id];
         switch (route->flags.type) {
@@ -66,15 +73,22 @@ void xap_execute_route(xap_token_t token, const xap_route_t *routes, size_t max_
                     return;
                 }
                 break;
+
             case XAP_EXECUTE:
                 if (route->handler != NULL) {
                     bool ok = (route->handler)(token, data_len == 1 ? NULL : &data[1], data_len - 1);
                     if (ok) return;
                 }
                 break;
-            case XAP_VALUE_U32:
+
+            case XAP_VALUE:
                 xap_respond_u32(token, route->u32value);
                 return;
+
+            case XAP_GETTER:
+                xap_respond_u32(token, (route->u32getter)());
+                return;
+
             default:
                 break;
         }

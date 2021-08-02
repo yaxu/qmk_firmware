@@ -40,7 +40,16 @@ bool xap_respond_u64(xap_token_t token, uint64_t value) {
     return true;
 }
 
-bool subsystem_xap_subsystem_query_handler(xap_token_t token, const uint8_t *data, size_t data_len) {
-    static const uint64_t xap_subsystems = (1 << SUBSYSTEM_XAP) | (1 << SUBSYSTEM_QMK) | (1 << SUBSYSTEM_KB) | (1 << SUBSYSTEM_USER);
-    return xap_respond_u64(token, xap_subsystems);
+uint32_t subsystem_xap_subsystem_query_getter(void) {
+    return (1ul << SUBSYSTEM_XAP) | (1ul << SUBSYSTEM_QMK) | (1ul << SUBSYSTEM_KB) | (1ul << SUBSYSTEM_USER)
+#if defined(DYNAMIC_KEYMAP_ENABLE)
+           | (1ul << SUBSYSTEM_DYNAMIC_KEYMAP)
+#endif
+#if defined(ENCODER_MAP_ENABLE)
+           | (1ul << SUBSYSTEM_DYNAMIC_ENCODER)
+#endif
+#if defined(RGBLIGHT_ENABLE) || defined(RGB_MATRIX_ENABLE)
+           | (1ul << SUBSYSTEM_LIGHTING)
+#endif
+        ;
 }
