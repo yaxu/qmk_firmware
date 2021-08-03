@@ -26,35 +26,35 @@ bool xap_respond_u32(xap_token_t token, uint32_t value) {
 }
 
 uint32_t subsystem_xap_capabilities_query_getter(void) {
-    return (1ul << (SUBSYSTEM_XAP_VERSION_QUERY)) | (1ul << (SUBSYSTEM_XAP_CAPABILITIES_QUERY)) | (1ul << (SUBSYSTEM_XAP_SUBSYSTEM_QUERY));
+    return SUBSYSTEM_XAP_VERSION_QUERY_MASK | SUBSYSTEM_XAP_CAPABILITIES_QUERY_MASK | SUBSYSTEM_XAP_SUBSYSTEM_QUERY_MASK;
 }
 
 uint32_t subsystem_xap_subsystem_query_getter(void) {
-    return (1ul << (SUBSYSTEM_XAP)) | (1ul << (SUBSYSTEM_QMK)) | (1ul << (SUBSYSTEM_KB)) | (1ul << (SUBSYSTEM_USER))
+    return SUBSYSTEM_XAP_MASK | SUBSYSTEM_QMK_MASK | SUBSYSTEM_KB_MASK | SUBSYSTEM_USER_MASK
 #if defined(DYNAMIC_KEYMAP_ENABLE)
-           | (1ul << (SUBSYSTEM_DYNAMIC_KEYMAP))
+           | SUBSYSTEM_DYNAMIC_KEYMAP_MASK
 #endif
 #if defined(DYNAMIC_KEYMAP_ENABLE) && defined(ENCODER_MAP_ENABLE)
-           | (1ul << (SUBSYSTEM_DYNAMIC_ENCODER))
+           | SUBSYSTEM_DYNAMIC_ENCODER_MASK
 #endif
 #if defined(RGBLIGHT_ENABLE) || defined(RGB_MATRIX_ENABLE)
-           | (1ul << (SUBSYSTEM_LIGHTING))
+           | SUBSYSTEM_LIGHTING_MASK
 #endif
         ;
 }
 
 uint32_t subsystem_qmk_capabilities_query_getter(void) {
-    return (1ul << (SUBSYSTEM_QMK_VERSION_QUERY)) | (1ul << (SUBSYSTEM_QMK_CAPABILITIES_QUERY));
+    return SUBSYSTEM_QMK_VERSION_QUERY_MASK | SUBSYSTEM_QMK_CAPABILITIES_QUERY_MASK;
 }
 
 uint32_t subsystem_dynamic_keymap_capabilities_query_getter(void) {
-    return (1ul << (SUBSYSTEM_DYNAMIC_KEYMAP_CAPABILITIES_QUERY));
+    return SUBSYSTEM_DYNAMIC_KEYMAP_CAPABILITIES_QUERY_MASK;
 }
 
 uint32_t subsystem_dynamic_encoder_capabilities_query_getter(void) {
-    return (1ul << (SUBSYSTEM_DYNAMIC_ENCODER_CAPABILITIES_QUERY));
+    return SUBSYSTEM_DYNAMIC_ENCODER_CAPABILITIES_QUERY_MASK;
 }
 
 uint32_t subsystem_lighting_capabilities_query_getter(void) {
-    return (1ul << (SUBSYSTEM_LIGHTING_CAPABILITIES_QUERY));
+    return SUBSYSTEM_LIGHTING_CAPABILITIES_QUERY_MASK;
 }

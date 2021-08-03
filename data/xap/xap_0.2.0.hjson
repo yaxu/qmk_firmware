@@ -10,6 +10,7 @@
                 '''
                 This subsystem allows for live modifications of the keymap, allowing keys to be reassigned without rebuilding the firmware.
                 '''
+            enable_if_preprocessor: defined(DYNAMIC_KEYMAP_ENABLE)
             routes: {
                 0x00: {
                     type: command
@@ -19,7 +20,6 @@
                         '''
                         Dynamic Keymap subsystem capabilities query. Each bit should be considered as a "usable" route within this subsystem.
                         '''
-                    always_present: true
                     returns_getter: true
                     return_type: u32/bitmask
                 }
@@ -34,6 +34,7 @@
                 '''
                 This subsystem allows for live modifications of the keymap, allowing encoder functionality to be reassigned without rebuilding the firmware.
                 '''
+            enable_if_preprocessor: defined(DYNAMIC_KEYMAP_ENABLE) && defined(ENCODER_MAP_ENABLE)
             routes: {
                 0x00: {
                     type: command
@@ -43,7 +44,6 @@
                         '''
                         Dynamic Encoders subsystem capabilities query. Each bit should be considered as a "usable" route within this subsystem.
                         '''
-                    always_present: true
                     returns_getter: true
                     return_type: u32/bitmask
                 }
@@ -58,6 +58,7 @@
                 '''
                 This subsystem allows for control over the lighting subsystem.
                 '''
+            enable_if_preprocessor: defined(RGBLIGHT_ENABLE) || defined(RGB_MATRIX_ENABLE)
             routes: {
                 0x00: {
                     type: command
@@ -67,7 +68,6 @@
                         '''
                         Lighting subsystem capabilities query. Each bit should be considered as a "usable" route within this subsystem.
                         '''
-                    always_present: true
                     returns_getter: true
                     return_type: u32/bitmask
                 }

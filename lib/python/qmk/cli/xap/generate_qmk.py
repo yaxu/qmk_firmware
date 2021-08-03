@@ -19,12 +19,19 @@ def _append_defines(lines, route_container, name_stack=[]):
             route_name = route['name']
             lines.append(f'//----------------------------------------------------------------')
             lines.append(f'// Subsystem: {route_name}')
+            if 'enable_if_preprocessor' in route:
+                condition = route['enable_if_preprocessor']
+                lines.append(f'#if {condition}')
             lines.append(f'#define {name_stack_str} {route_id}')
+            lines.append(f'#define {name_stack_str}_MASK (1ul << ({name_stack_str}))')
             lines.append('')
             _append_defines(lines, route, name_stack[:-1])
+            if 'enable_if_preprocessor' in route:
+                lines.append('#endif')
             lines.append('')
         elif route['type'] == 'command':
             lines.append(f'#define {name_stack_str} {route_id}')
+            lines.append(f'#define {name_stack_str}_MASK (1ul << ({name_stack_str}))')
         name_stack.pop()
     name_stack.pop()
 
@@ -42,6 +49,9 @@ def _append_routing_table(lines, route, name_stack=[]):
         is_secure = 1 if ('secure' in child and child['secure'] is True) else 0
 
         # Generate the table entry
+        if 'enable_if_preprocessor' in child:
+            condition = child['enable_if_preprocessor']
+            lines.append(f'#if {condition}')
         if child['type'] == 'router':
 
             # If we're a router, we need to offload to the child table
@@ -57,11 +67,18 @@ def _append_routing_table(lines, route, name_stack=[]):
 
             elif 'returns_getter' in child and child['returns_getter'] is True:
                 # Auto-generated route handlers
+                if 'enable_if_preprocessor' in child:
+                    condition = child['enable_if_preprocessor']
+                    lines.append(f'#if {condition}')
                 lines.append(f'    [{name_stack_str}] = {{ .flags = {{ .type = XAP_GETTER, .is_secure = {is_secure} }}, .u32getter = &{name_stack_str.lower()}_getter }},')
+                if 'enable_if_preprocessor' in child:
+                    lines.append('#endif')
 
             else:
                 # External route handler
                 lines.append(f'    [{name_stack_str}] = {{ .flags = {{ .type = XAP_EXECUTE, .is_secure = {is_secure} }}, .handler = &{name_stack_str.lower()}_handler }},')
+        if 'enable_if_preprocessor' in child:
+            lines.append('#endif')
 
         name_stack.pop()
 
@@ -70,11 +87,13 @@ def _append_routing_table(lines, route, name_stack=[]):
     # Compile-time validate that the array fits
     name_stack_str = ('_'.join(name_stack)).lower()
     lines.append(f'_Static_assert((sizeof({name_stack_str.lower()}_routes)/sizeof({name_stack_str.lower()}_routes[0])) <= 32, "Too many routes in {name_stack_str.lower()}_routes, should be max of 32");')
-    lines.append('')
     name_stack.pop()
 
 
 def _append_route_handler(lines, route, name):
+    if 'enable_if_preprocessor' in route:
+        condition = route['enable_if_preprocessor']
+        lines.append(f'#if {condition}')
     if route['return_type'].startswith('u32'):
         if 'returns_constant' in route:
             # Handled directly in the table
@@ -85,9 +104,15 @@ def _append_route_handler(lines, route, name):
     else:
         # External route handler
         lines.append(f'extern bool {name_stack_str.lower()}_handler(xap_token_t token, const uint8_t *data, size_t data_len);')
+    if 'enable_if_preprocessor' in route:
+        lines.append('#endif')
+    lines.append('')
 
 
 def _append_routing_tables(lines, route_container, name_stack=[]):
+    if 'enable_if_preprocessor' in route_container:
+        condition = route_container['enable_if_preprocessor']
+        lines.append(f'#if {condition}')
     name_stack.append(route_container['define'].upper())
     for route_id in route_container['routes']:
         route = route_container['routes'][route_id]
@@ -110,6 +135,8 @@ def _append_routing_tables(lines, route_container, name_stack=[]):
         name_stack.pop()
     name_stack.pop()
     _append_routing_table(lines, route_container, name_stack)
+    if 'enable_if_preprocessor' in route_container:
+        lines.append('#endif')
 
 
 @cli.argument('-o', '--output', arg_only=True, type=normpath, help='File to write to')
@@ -123,6 +150,7 @@ def xap_generate_qmk_inc(cli):
 
     # Append the routing tables
     _append_routing_tables(lines, xap_defs)
+    lines.append('')
 
     xap_generated_inl = '\n'.join(lines)
 
@@ -154,6 +182,7 @@ def xap_generate_qmk_h(cli):
 
     # Append the route and command defines
     _append_defines(lines, xap_defs)
+    lines.append('')
 
     xap_generated_inl = '\n'.join(lines)
 
