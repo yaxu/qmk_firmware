@@ -35,10 +35,7 @@ typedef uint16_t xap_token_t;
 #define XAP_RESPONSE_FLAG_SUCCESS (1 << 0)
 
 void xap_respond_failure(xap_token_t token, xap_response_flags_t response_flags);
-bool xap_respond_u8(xap_token_t token, uint8_t value);
-bool xap_respond_u16(xap_token_t token, uint16_t value);
 bool xap_respond_u32(xap_token_t token, uint32_t value);
-bool xap_respond_u64(xap_token_t token, uint64_t value);
 
 void xap_send(xap_token_t token, xap_response_flags_t response_flags, const void *data, size_t length);
 

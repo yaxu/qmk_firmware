@@ -1,60 +1,12 @@
 """This script generates the XAP protocol generated source to be compiled into QMK.
 """
-import hjson
-import datetime
 import re
 
 from milc import cli
 from qmk.path import normpath
 from qmk.commands import get_git_version
 from qmk.xap import latest_xap_defs
-
-
-this_year = datetime.date.today().year
-gpl_header = f'''\
-/* Copyright {this_year} QMK
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-'''
-
-generated = '''\
-/*******************************************************************************
-
-88888888888 888      d8b                .d888 d8b 888               d8b
-    888     888      Y8P               d88P"  Y8P 888               Y8P
-    888     888                        888        888
-    888     88888b.  888 .d8888b       888888 888 888  .d88b.       888 .d8888b
-    888     888 "88b 888 88K           888    888 888 d8P  Y8b      888 88K
-    888     888  888 888 "Y8888b.      888    888 888 88888888      888 "Y8888b.
-    888     888  888 888      X88      888    888 888 Y8b.          888      X88
-    888     888  888 888  88888P'      888    888 888  "Y8888       888  88888P'
-
-                                                      888                 888
-                                                      888                 888
-                                                      888                 888
-   .d88b.   .d88b.  88888b.   .d88b.  888d888 8888b.  888888 .d88b.   .d88888
-  d88P"88b d8P  Y8b 888 "88b d8P  Y8b 888P"      "88b 888   d8P  Y8b d88" 888
-  888  888 88888888 888  888 88888888 888    .d888888 888   88888888 888  888
-  Y88b 888 Y8b.     888  888 Y8b.     888    888  888 Y88b. Y8b.     Y88b 888
-   "Y88888  "Y8888  888  888  "Y8888  888    "Y888888  "Y888 "Y8888   "Y88888
-       888
-  Y8b d88P
-   "Y88P"
-
-*******************************************************************************/
-'''
+from qmk.constants import GPL2_HEADER_C_LIKE, GENERATED_HEADER_C_LIKE
 
 
 def _append_defines(lines, route_container, name_stack=[]):
@@ -64,6 +16,9 @@ def _append_defines(lines, route_container, name_stack=[]):
         name_stack.append(route['define'].upper())
         name_stack_str = ('_'.join(name_stack)).upper()
         if route['type'] == 'router':
+            route_name = route['name']
+            lines.append(f'//----------------------------------------------------------------')
+            lines.append(f'// Subsystem: {route_name}')
             lines.append(f'#define {name_stack_str} {route_id}')
             lines.append('')
             _append_defines(lines, route, name_stack[:-1])
@@ -124,7 +79,7 @@ def _append_route_handler(lines, route, name):
         if 'returns_constant' in route:
             # Handled directly in the table
             pass
-        elif 'returns_getter' in child and child['returns_getter'] is True:
+        elif 'returns_getter' in route and route['returns_getter'] is True:
             # Handled directly in the table
             pass
     else:
@@ -164,7 +119,7 @@ def xap_generate_qmk_inc(cli):
     """
     xap_defs = latest_xap_defs()
 
-    lines = [gpl_header, generated]
+    lines = [GPL2_HEADER_C_LIKE, GENERATED_HEADER_C_LIKE]
 
     # Append the routing tables
     _append_routing_tables(lines, xap_defs)
@@ -188,7 +143,7 @@ def xap_generate_qmk_h(cli):
     """
     xap_defs = latest_xap_defs()
 
-    lines = [gpl_header, generated, '#pragma once','']
+    lines = [GPL2_HEADER_C_LIKE, GENERATED_HEADER_C_LIKE, '#pragma once','']
 
     prog = re.compile(r'^(\d+)\.(\d+)\.(\d+)')
     b = prog.match(xap_defs['version'])

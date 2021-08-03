@@ -105,6 +105,18 @@
             routes: {
                 0x01: {
                     type: command
+                    name: Capabilities Query
+                    define: CAPABILITIES_QUERY
+                    description:
+                        '''
+                        XAP subsystem capabilities query. Each bit should be considered as a "usable" route within this subsystem.
+                        '''
+                    always_present: true
+                    returns_getter: true
+                    return_type: u32/bitmask
+                }
+                0x02: {
+                    type: command
                     name: Enabled subsystem query
                     define: SUBSYSTEM_QUERY
                     description:
@@ -144,6 +156,18 @@
                     returns_constant: QMK_BCD_VERSION
                     return_type: u32/bcd-version
                 }
+                0x01: {
+                    type: command
+                    name: Capabilities Query
+                    define: CAPABILITIES_QUERY
+                    description:
+                        '''
+                        QMK subsystem capabilities query. Each bit should be considered as a "usable" route within this subsystem.
+                        '''
+                    always_present: true
+                    returns_getter: true
+                    return_type: u32/bitmask
+                }
             }
         },
 
@@ -153,26 +177,9 @@
             define: KB
             description:
                 '''
-                This subsystem is always present, and provides the ability to address keyboard-specific functionality.
+                This subsystem is always present, and reserved for user-specific functionality. No routes are defined by XAP.
                 '''
             routes: {
-                0x00: {
-                    type: command
-                    name: Version Query
-                    define: VERSION_QUERY
-                    description:
-                        '''
-                        QMK protocol version query.
-
-                        * Returns the BCD-encoded version in the format of XX.YY.ZZZZ => `0xXXYYZZZZ`
-                            * e.g. 3.2.115 will match `0x03020115`, or bytes {0x15,0x01,0x02,0x03}.
-                        * Response:
-                            * `u32` value.
-                        '''
-                    always_present: true
-                    returns_constant: XAP_SUBSYSTEM_VERSION_KB
-                    return_type: u32
-                }
             }
         },
 
@@ -182,26 +189,9 @@
             define: USER
             description:
                 '''
-                This subsystem is always present, and provides the ability to address user-specific functionality.
+                This subsystem is always present, and reserved for user-specific functionality. No routes are defined by XAP.
                 '''
             routes: {
-                0x00: {
-                    type: command
-                    name: Version Query
-                    define: VERSION_QUERY
-                    description:
-                        '''
-                        QMK protocol version query.
-
-                        * Returns the BCD-encoded version in the format of XX.YY.ZZZZ => `0xXXYYZZZZ`
-                            * e.g. 3.2.115 will match `0x03020115`, or bytes {0x15,0x01,0x02,0x03}.
-                        * Response:
-                            * `u32` value.
-                        '''
-                    always_present: true
-                    returns_constant: XAP_SUBSYSTEM_VERSION_USER
-                    return_type: u32
-                }
             }
         }
     }

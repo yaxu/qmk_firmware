@@ -11,6 +11,18 @@
                 This subsystem allows for live modifications of the keymap, allowing keys to be reassigned without rebuilding the firmware.
                 '''
             routes: {
+                0x00: {
+                    type: command
+                    name: Capabilities Query
+                    define: CAPABILITIES_QUERY
+                    description:
+                        '''
+                        Dynamic Keymap subsystem capabilities query. Each bit should be considered as a "usable" route within this subsystem.
+                        '''
+                    always_present: true
+                    returns_getter: true
+                    return_type: u32/bitmask
+                }
             }
         }
 
@@ -23,6 +35,18 @@
                 This subsystem allows for live modifications of the keymap, allowing encoder functionality to be reassigned without rebuilding the firmware.
                 '''
             routes: {
+                0x00: {
+                    type: command
+                    name: Capabilities Query
+                    define: CAPABILITIES_QUERY
+                    description:
+                        '''
+                        Dynamic Encoders subsystem capabilities query. Each bit should be considered as a "usable" route within this subsystem.
+                        '''
+                    always_present: true
+                    returns_getter: true
+                    return_type: u32/bitmask
+                }
             }
         }
 
@@ -35,6 +59,18 @@
                 This subsystem allows for control over the lighting subsystem.
                 '''
             routes: {
+                0x00: {
+                    type: command
+                    name: Capabilities Query
+                    define: CAPABILITIES_QUERY
+                    description:
+                        '''
+                        Lighting subsystem capabilities query. Each bit should be considered as a "usable" route within this subsystem.
+                        '''
+                    always_present: true
+                    returns_getter: true
+                    return_type: u32/bitmask
+                }
             }
         }
     }
